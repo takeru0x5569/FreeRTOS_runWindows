@@ -1,7 +1,8 @@
-# add_subdirectory(./lib)
 add_subdirectory(./RTOS)
 
-# include_directories(./lib)
+#==============================================================
+# include hedder 
+#==============================================================
 include_directories(./)
 include_directories(./RTOS/include)
 include_directories(./RTOS/portable/MSVC-MingW)
@@ -13,15 +14,15 @@ set(SOURCE_FILES
     )
 
 add_executable(EXE_OBJECT ${SOURCE_FILES})
-
 #==============================================================
-# LINK
+# LINK objects.
 #==============================================================
+# windows dll 
 set(DLL_LIB
     winmm 
     gdi32
 )
-
+# own library
 set(STATIC_LIB
     RTOS
 )
