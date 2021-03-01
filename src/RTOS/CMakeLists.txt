@@ -1,6 +1,8 @@
 set(THIS_NAME "RTOS")
 
 include_directories(../)					#include FreeRTOSConfig.h 
+include_directories(./CMSIS)				#include CMSIS wrapper Hedder file
+include_directories(./CMSIS/include)		#include CMSIS wrapper Hedder file
 include_directories(./include)				#include Hedder file
 include_directories(./portable/MSVC-MingW)
 
@@ -13,4 +15,5 @@ add_library(${THIS_NAME}  OBJECT
 	timers.c
 	vAssertCalled.c
 	tasks.c
+	CMSIS/cmsis_os.c
 )

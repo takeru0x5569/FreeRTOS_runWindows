@@ -1,4 +1,5 @@
 add_subdirectory(./RTOS)
+add_subdirectory(./UserTaskDef)
 
 #==============================================================
 # include hedder 
@@ -6,6 +7,9 @@ add_subdirectory(./RTOS)
 include_directories(./)
 include_directories(./RTOS/include)
 include_directories(./RTOS/portable/MSVC-MingW)
+include_directories(./RTOS/CMSIS)
+
+include_directories(./UserTaskDef)
 #==============================================================
 # genarate executable object
 #==============================================================
@@ -25,6 +29,7 @@ set(DLL_LIB
 # own library
 set(STATIC_LIB
     RTOS
+    USER_TASK
 )
 
 target_link_libraries(EXE_OBJECT  PUBLIC ${STATIC_LIB} ${DLL_LIB} )
