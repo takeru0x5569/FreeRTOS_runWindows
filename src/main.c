@@ -1,17 +1,19 @@
 
 #include "UserTaskDef.h"
-
+#include <stdio.h>
 //===================================================================
 //
 //===================================================================
 int main(){
-	TaskInit();
+	if( 0 == TaskInit() ){
+		printf("task initialize OK\n");
+	}else{
+		printf("task initialize ON!!!!!!\n");
+	};
 	 /* Start scheduler */
 	UserTaskStart();
-	/* USER CODE BEGIN WHILE */
+
 	while (1)
 	{
-
 	}
-	/* USER CODE END WHILE */
 }

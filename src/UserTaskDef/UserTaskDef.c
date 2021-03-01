@@ -11,48 +11,51 @@ static osThreadId 			taskHandle1;
 static osThreadId 			taskHandle2;
 
 //--------------------------------------------------------
-//
+// task Definition
 //--------------------------------------------------------
 //          Task Name     Entry Function    Priority         instance   Stack Size
 osThreadDef(dummyTask1   ,dummyTask1Func   ,osPriorityHigh  , 0       , 0x800);
 osThreadDef(dummyTask2   ,dummyTask2Func   ,osPriorityHigh  , 0       , 0x800);
 
 //--------------------------------------------------------
-//
+// task Registration
 //--------------------------------------------------------
 int TaskInit(void){
-    printf("dummy_task1_Init!!\n");
-    taskHandle1 = osThreadCreate(&os_thread_def_dummyTask1, NULL);
-    printf("dummy_task2_Init!!\n");
-    taskHandle2 = osThreadCreate(&os_thread_def_dummyTask2, NULL);
+    if( 1 == osKernelRunning() ){
+        return 1;//error
+    }
+
+    taskHandle1 = osThreadCreate(osThread(dummyTask1), NULL);
+    taskHandle2 = osThreadCreate(osThread(dummyTask2), NULL);
+    return 0;//
 }
 //--------------------------------------------------------
-//
+// task Start
 //--------------------------------------------------------
 void UserTaskStart(){
-    int32_t run_sts;
-    run_sts = osKernelRunning();
-    printf("osKernelRunning = %d\n" , run_sts );
-    osKernelStart();
-
-    printf("@@ osKernelRunning = %d\n" , run_sts );
+    if( 0 == osKernelRunning() ){
+        osKernelStart();
+	}
 }
 //--------------------------------------------------------
-//
+// task1
 //--------------------------------------------------------
 static void dummyTask1Func(void const *arg){
   uint32_t PreviousWakeTime;
 	for(int i=0; i<5; i++){
 		printf("dummy_task1\n");
-    osDelayUntil(&PreviousWakeTime , 1000);
+    	osDelayUntil(&PreviousWakeTime , 1000);//1秒周期
 	}
-  osThreadTerminate(taskHandle1);
+  osThreadTerminate(taskHandle1);//タスク停止
 }
+//--------------------------------------------------------
+// task2
+//--------------------------------------------------------
 static void dummyTask2Func(void const *arg){
   uint32_t PreviousWakeTime;
 	for(int i=0; i<5; i++){
 		printf("           dummy_task2\n");
-    osDelayUntil(&PreviousWakeTime , 2000);
+    	osDelayUntil(&PreviousWakeTime , 2000);//2秒周期
 	}
   osThreadTerminate(taskHandle2);
 }
