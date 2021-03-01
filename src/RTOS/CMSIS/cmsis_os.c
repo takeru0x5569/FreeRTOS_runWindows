@@ -1,101 +1,101 @@
 #include <stdio.h>
-// /* ----------------------------------------------------------------------
-//  * $Date:        5. February 2013
-//  * $Revision:    V1.02
-//  *
-//  * Project:      CMSIS-RTOS API
-//  * Title:        cmsis_os.c
-//  *
-//  * Version 0.02
-//  *    Initial Proposal Phase
-//  * Version 0.03
-//  *    osKernelStart added, optional feature: main started as thread
-//  *    osSemaphores have standard behavior
-//  *    osTimerCreate does not start the timer, added osTimerStart
-//  *    osThreadPass is renamed to osThreadYield
-//  * Version 1.01
-//  *    Support for C++ interface
-//  *     - const attribute removed from the osXxxxDef_t typedef's
-//  *     - const attribute added to the osXxxxDef macros
-//  *    Added: osTimerDelete, osMutexDelete, osSemaphoreDelete
-//  *    Added: osKernelInitialize
-//  * Version 1.02
-//  *    Control functions for short timeouts in microsecond resolution:
-//  *    Added: osKernelSysTick, osKernelSysTickFrequency, osKernelSysTickMicroSec
-//  *    Removed: osSignalGet 
-//  *    
-//  *  
-//  *----------------------------------------------------------------------------
-//  *
-//  * Portions Copyright � 2016 STMicroelectronics International N.V. All rights reserved.
-//  * Portions Copyright (c) 2013 ARM LIMITED
-//  * All rights reserved.
-//  * Redistribution and use in source and binary forms, with or without
-//  * modification, are permitted provided that the following conditions are met:
-//  *  - Redistributions of source code must retain the above copyright
-//  *    notice, this list of conditions and the following disclaimer.
-//  *  - Redistributions in binary form must reproduce the above copyright
-//  *    notice, this list of conditions and the following disclaimer in the
-//  *    documentation and/or other materials provided with the distribution.
-//  *  - Neither the name of ARM  nor the names of its contributors may be used
-//  *    to endorse or promote products derived from this software without
-//  *    specific prior written permission.
-//  *
-//  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  * ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDERS AND CONTRIBUTORS BE
-//  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-//  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-//  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-//  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-//  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//  * POSSIBILITY OF SUCH DAMAGE.
-//  *---------------------------------------------------------------------------*/
+/* ----------------------------------------------------------------------
+ * $Date:        5. February 2013
+ * $Revision:    V1.02
+ *
+ * Project:      CMSIS-RTOS API
+ * Title:        cmsis_os.c
+ *
+ * Version 0.02
+ *    Initial Proposal Phase
+ * Version 0.03
+ *    osKernelStart added, optional feature: main started as thread
+ *    osSemaphores have standard behavior
+ *    osTimerCreate does not start the timer, added osTimerStart
+ *    osThreadPass is renamed to osThreadYield
+ * Version 1.01
+ *    Support for C++ interface
+ *     - const attribute removed from the osXxxxDef_t typedef's
+ *     - const attribute added to the osXxxxDef macros
+ *    Added: osTimerDelete, osMutexDelete, osSemaphoreDelete
+ *    Added: osKernelInitialize
+ * Version 1.02
+ *    Control functions for short timeouts in microsecond resolution:
+ *    Added: osKernelSysTick, osKernelSysTickFrequency, osKernelSysTickMicroSec
+ *    Removed: osSignalGet 
+ *    
+ *  
+ *----------------------------------------------------------------------------
+ *
+ * Portions Copyright � 2016 STMicroelectronics International N.V. All rights reserved.
+ * Portions Copyright (c) 2013 ARM LIMITED
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *  - Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  - Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  - Neither the name of ARM  nor the names of its contributors may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDERS AND CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *---------------------------------------------------------------------------*/
 
-//  /**
-//   ******************************************************************************
-//   * @file    cmsis_os.c
-//   * @author  MCD Application Team
-//   * @date    13-July-2017
-//   * @brief   CMSIS-RTOS API implementation for FreeRTOS V9.0.0
-//   ******************************************************************************
-//   * @attention
-//   *
-//   * Redistribution and use in source and binary forms, with or without 
-//   * modification, are permitted, provided that the following conditions are met:
-//   *
-//   * 1. Redistribution of source code must retain the above copyright notice, 
-//   *    this list of conditions and the following disclaimer.
-//   * 2. Redistributions in binary form must reproduce the above copyright notice,
-//   *    this list of conditions and the following disclaimer in the documentation
-//   *    and/or other materials provided with the distribution.
-//   * 3. Neither the name of STMicroelectronics nor the names of other 
-//   *    contributors to this software may be used to endorse or promote products 
-//   *    derived from this software without specific written permission.
-//   * 4. This software, including modifications and/or derivative works of this 
-//   *    software, must execute solely and exclusively on microcontroller or
-//   *    microprocessor devices manufactured by or for STMicroelectronics.
-//   * 5. Redistribution and use of this software other than as permitted under 
-//   *    this license is void and will automatically terminate your rights under 
-//   *    this license. 
-//   *
-//   * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
-//   * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
-//   * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-//   * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
-//   * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
-//   * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//   * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//   * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
-//   * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-//   * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-//   * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//   *
-//   ******************************************************************************
-//   */ 
+ /**
+  ******************************************************************************
+  * @file    cmsis_os.c
+  * @author  MCD Application Team
+  * @date    13-July-2017
+  * @brief   CMSIS-RTOS API implementation for FreeRTOS V9.0.0
+  ******************************************************************************
+  * @attention
+  *
+  * Redistribution and use in source and binary forms, with or without 
+  * modification, are permitted, provided that the following conditions are met:
+  *
+  * 1. Redistribution of source code must retain the above copyright notice, 
+  *    this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of other 
+  *    contributors to this software may be used to endorse or promote products 
+  *    derived from this software without specific written permission.
+  * 4. This software, including modifications and/or derivative works of this 
+  *    software, must execute solely and exclusively on microcontroller or
+  *    microprocessor devices manufactured by or for STMicroelectronics.
+  * 5. Redistribution and use of this software other than as permitted under 
+  *    this license is void and will automatically terminate your rights under 
+  *    this license. 
+  *
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
+  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  ******************************************************************************
+  */ 
 
 // #include <string.h>
 #include "cmsis_os.h"
@@ -176,13 +176,13 @@ static unsigned portBASE_TYPE makeFreeRtosPriority (osPriority priority)
 //   return __get_IPSR() != 0;
 // }
 
-// /*********************** Kernel Control Functions *****************************/
-// /**
-// * @brief  Initialize the RTOS Kernel for creating objects.
-// * @retval status code that indicates the execution status of the function.
-// * @note   MUST REMAIN UNCHANGED: \b osKernelInitialize shall be consistent in every CMSIS-RTOS.
-// */
-// osStatus osKernelInitialize (void);
+/*********************** Kernel Control Functions *****************************/
+/**
+* @brief  Initialize the RTOS Kernel for creating objects.
+* @retval status code that indicates the execution status of the function.
+* @note   MUST REMAIN UNCHANGED: \b osKernelInitialize shall be consistent in every CMSIS-RTOS.
+*/
+osStatus osKernelInitialize (void);
 
 /**
 * @brief  Start the RTOS Kernel with executing the specified thread.
@@ -198,25 +198,25 @@ osStatus osKernelStart (void)
   return osOK;
 }
 
-// /**
-// * @brief  Check if the RTOS kernel is already started
-// * @param  None
-// * @retval (0) RTOS is not started
-// *         (1) RTOS is started
-// *         (-1) if this feature is disabled in FreeRTOSConfig.h 
-// * @note  MUST REMAIN UNCHANGED: \b osKernelRunning shall be consistent in every CMSIS-RTOS.
-// */
-// int32_t osKernelRunning(void)
-// {
-// #if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
-//   if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)
-//     return 0;
-//   else
-//     return 1;
-// #else
-// 	return (-1);
-// #endif	
-// }
+/**
+* @brief  Check if the RTOS kernel is already started
+* @param  None
+* @retval (0) RTOS is not started
+*         (1) RTOS is started
+*         (-1) if this feature is disabled in FreeRTOSConfig.h 
+* @note  MUST REMAIN UNCHANGED: \b osKernelRunning shall be consistent in every CMSIS-RTOS.
+*/
+int32_t osKernelRunning(void)
+{
+#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+  if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)
+    return 0;
+  else
+    return 1;
+#else
+	return (-1);
+#endif	
+}
 
 // #if (defined (osFeature_SysTick)  &&  (osFeature_SysTick != 0))     // System Timer available
 // /**
@@ -282,35 +282,35 @@ osThreadId osThreadCreate (const osThreadDef_t *thread_def, void *argument)
   return handle;
 }
 
-// /**
-// * @brief  Return the thread ID of the current running thread.
-// * @retval thread ID for reference by other functions or NULL in case of error.
-// * @note   MUST REMAIN UNCHANGED: \b osThreadGetId shall be consistent in every CMSIS-RTOS.
-// */
-// osThreadId osThreadGetId (void)
-// {
-// #if ( ( INCLUDE_xTaskGetCurrentTaskHandle == 1 ) || ( configUSE_MUTEXES == 1 ) )
-//   return xTaskGetCurrentTaskHandle();
-// #else
-// 	return NULL;
-// #endif
-// }
+/**
+* @brief  Return the thread ID of the current running thread.
+* @retval thread ID for reference by other functions or NULL in case of error.
+* @note   MUST REMAIN UNCHANGED: \b osThreadGetId shall be consistent in every CMSIS-RTOS.
+*/
+osThreadId osThreadGetId (void)
+{
+#if ( ( INCLUDE_xTaskGetCurrentTaskHandle == 1 ) || ( configUSE_MUTEXES == 1 ) )
+  return xTaskGetCurrentTaskHandle();
+#else
+	return NULL;
+#endif
+}
 
-// /**
-// * @brief  Terminate execution of a thread and remove it from Active Threads.
-// * @param   thread_id   thread ID obtained by \ref osThreadCreate or \ref osThreadGetId.
-// * @retval  status code that indicates the execution status of the function.
-// * @note   MUST REMAIN UNCHANGED: \b osThreadTerminate shall be consistent in every CMSIS-RTOS.
-// */
-// osStatus osThreadTerminate (osThreadId thread_id)
-// {
-// #if (INCLUDE_vTaskDelete == 1)
-//   vTaskDelete(thread_id);
-//   return osOK;
-// #else
-//   return osErrorOS;
-// #endif
-// }
+/**
+* @brief  Terminate execution of a thread and remove it from Active Threads.
+* @param   thread_id   thread ID obtained by \ref osThreadCreate or \ref osThreadGetId.
+* @retval  status code that indicates the execution status of the function.
+* @note   MUST REMAIN UNCHANGED: \b osThreadTerminate shall be consistent in every CMSIS-RTOS.
+*/
+osStatus osThreadTerminate (osThreadId thread_id)
+{
+#if (INCLUDE_vTaskDelete == 1)
+  vTaskDelete(thread_id);
+  return osOK;
+#else
+  return osErrorOS;
+#endif
+}
 
 // /**
 // * @brief  Pass control to next thread that is in state \b READY.
@@ -363,27 +363,25 @@ osThreadId osThreadCreate (const osThreadDef_t *thread_def, void *argument)
 // #endif
 // }
 
-// /*********************** Generic Wait Functions *******************************/
-// /**
-// * @brief   Wait for Timeout (Time Delay)
-// * @param   millisec      time delay value
-// * @retval  status code that indicates the execution status of the function.
-// */
-// osStatus osDelay (uint32_t millisec)
-// {
-// #if INCLUDE_vTaskDelay
-// //  TickType_t ticks = millisec / portTICK_PERIOD_MS;
-//   TickType_t ticks = millisec * 1000 / portTICK_PERIOD_US;
+/*********************** Generic Wait Functions *******************************/
+/**
+* @brief   Wait for Timeout (Time Delay)
+* @param   millisec      time delay value
+* @retval  status code that indicates the execution status of the function.
+*/
+osStatus osDelay (uint32_t millisec)
+{
+#if INCLUDE_vTaskDelay
+  TickType_t ticks = millisec / portTICK_PERIOD_MS;
+  vTaskDelay(ticks ? ticks : 1);          /* Minimum delay = 1 tick */
   
-//   vTaskDelay(ticks ? ticks : 1);          /* Minimum delay = 1 tick */
+  return osOK;
+#else
+  (void) millisec;
   
-//   return osOK;
-// #else
-//   (void) millisec;
-  
-//   return osErrorResource;
-// #endif
-// }
+  return osErrorResource;
+#endif
+}
 
 // #if (defined (osFeature_Wait)  &&  (osFeature_Wait != 0)) /* Generic Wait available */
 // /**
@@ -1550,29 +1548,27 @@ osThreadId osThreadCreate (const osThreadDef_t *thread_def, void *argument)
   
 // }
 
-// /**
-// * @brief  Delay a task until a specified time
-// * @param   PreviousWakeTime   Pointer to a variable that holds the time at which the 
-// *          task was last unblocked. PreviousWakeTime must be initialised with the current time
-// *          prior to its first use (PreviousWakeTime = osKernelSysTick() )
-// * @param   millisec    time delay value
-// * @retval  status code that indicates the execution status of the function.
-// */
-// osStatus osDelayUntil (uint32_t *PreviousWakeTime, uint32_t millisec)
-// {
-// #if INCLUDE_vTaskDelayUntil
-// //  TickType_t ticks = (millisec / portTICK_PERIOD_MS);
-//   TickType_t ticks = (millisec * 1000 / portTICK_PERIOD_US);
-//   vTaskDelayUntil((TickType_t *) PreviousWakeTime, ticks ? ticks : 1);
+/**
+* @brief  Delay a task until a specified time
+* @param   PreviousWakeTime   Pointer to a variable that holds the time at which the 
+*          task was last unblocked. PreviousWakeTime must be initialised with the current time
+*          prior to its first use (PreviousWakeTime = osKernelSysTick() )
+* @param   millisec    time delay value
+* @retval  status code that indicates the execution status of the function.
+*/
+osStatus osDelayUntil (uint32_t *PreviousWakeTime, uint32_t millisec){
+#if INCLUDE_vTaskDelayUntil
+  TickType_t ticks = (millisec / portTICK_PERIOD_MS);
+  vTaskDelayUntil((TickType_t *) PreviousWakeTime, ticks ? ticks : 1);
   
-//   return osOK;
-// #else
-//   (void) millisec;
-//   (void) PreviousWakeTime;
+  return osOK;
+#else
+  (void) millisec;
+  (void) PreviousWakeTime;
   
-//   return osErrorResource;
-// #endif
-// }
+  return osErrorResource;
+#endif
+}
 
 // /**
 // * @brief   Abort the delay for a specific thread

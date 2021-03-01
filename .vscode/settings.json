@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "queue.h": "c"
+        "queue.h": "c",
+        "usertaskdef.h": "c",
+        "cmsis_os.h": "c"
     }
 }
